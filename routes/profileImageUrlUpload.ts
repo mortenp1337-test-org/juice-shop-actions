@@ -16,6 +16,25 @@ module.exports = function profileImageUrlUpload () {
   return (req: Request, res: Response, next: NextFunction) => {
     if (req.body.imageUrl !== undefined) {
       const url = req.body.imageUrl
+      let parsed
+      try {
+        parsed = new URL(url)
+      } catch (e) {
+        return res.status(400).send('Invalid image URL.')
+      }
+      
+      // Only allow images from these hostnames
+      const ALLOWED_HOSTNAMES = [
+        'i.imgur.com',
+        'imgur.com',
+        'images.unsplash.com',
+        'cdn.pixabay.com'
+      ]
+
+      if (!ALLOWED_HOSTNAMES.includes(parsed.hostname)) {
+        return res.status(400).send('Host not allowed.')
+      }
+
       if (url.match(/(.)*solve\/challenges\/server-side(.)*/) !== null) req.app.locals.abused_ssrf_bug = true
       const loggedInUser = security.authenticatedUsers.get(req.cookies.token)
       if (loggedInUser) {
