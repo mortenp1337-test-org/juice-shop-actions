@@ -12,11 +12,28 @@ import * as utils from '../lib/utils'
 const security = require('../lib/insecurity')
 const request = require('request')
 
+// Only allow images from these hostnames
+const ALLOWED_HOSTNAMES = [
+  'i.imgur.com',
+  'images.unsplash.com',
+  'cdn.pixabay.com'
+]
+
 module.exports = function profileImageUrlUpload () {
   return (req: Request, res: Response, next: NextFunction) => {
     if (req.body.imageUrl !== undefined) {
       const url = req.body.imageUrl
-      if (url.match(/(.)*solve\/challenges\/server-side(.)*/) !== null) req.app.locals.abused_ssrf_bug = true
+      let parsed
+      try {
+        parsed = new URL(url)
+      } catch (e) {
+        return res.status(400).send('Invalid image URL.')
+      }
+
+      if (!ALLOWED_HOSTNAMES.includes(parsed.hostname)) {
+        return res.status(400).send('Host not allowed.')
+      }
+      if (parsed.href.match(/(.)*solve\/challenges\/server-side(.)*/) !== null) req.app.locals.abused_ssrf_bug = true
       const loggedInUser = security.authenticatedUsers.get(req.cookies.token)
       if (loggedInUser) {
         const imageRequest = request
