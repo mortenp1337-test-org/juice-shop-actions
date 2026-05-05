@@ -33,7 +33,7 @@ module.exports = function profileImageUrlUpload () {
       if (!ALLOWED_HOSTNAMES.includes(parsed.hostname)) {
         return res.status(400).send('Host not allowed.')
       }
-      if (url.match(/(.)*solve\/challenges\/server-side(.)*/) !== null) req.app.locals.abused_ssrf_bug = true
+      if (parsed.href.match(/(.)*solve\/challenges\/server-side(.)*/) !== null) req.app.locals.abused_ssrf_bug = true
       const loggedInUser = security.authenticatedUsers.get(req.cookies.token)
       if (loggedInUser) {
         const imageRequest = request
